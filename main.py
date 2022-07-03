@@ -32,8 +32,7 @@ CORS(app, resources={r"*": {"origins": "*"}})
 limiter = Limiter(app, key_func=get_remote_address)
 logger = logging.getLogger('waitress')
 logger.setLevel(logging.INFO)
-logging.basicConfig(level=logging.DEBUG,
-                    format=f'%(asctime)s : %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s : %(message)s')
 logger.info('API IS RUNNING')
 logger.info('--------------------------------')
 logger.info('Never Use This API for Production If you deploying on the slow server')
@@ -121,9 +120,11 @@ def authlogin():
 
     def getXHeaders():
         XClaim = str(int(time.time()))
-        headers = {"X-Signature-Version": "web2",
-                   "X-Time": XClaim, "X-Signature": secrets.token_hex(32)}
-        return headers
+        return {
+            "X-Signature-Version": "web2",
+            "X-Time": XClaim,
+            "X-Signature": secrets.token_hex(32),
+        }
 
     def login(s: requests.Session, email, password):
         s.headers.update(getXHeaders())
@@ -133,8 +134,7 @@ def authlogin():
         return getInfo(response.text)
 
     def getInfo(response):
-        received = json.loads(response)
-        return received
+        return json.loads(response)
 
     def main():
         s = requests.Session()
@@ -161,9 +161,11 @@ def authgetsession():
     def getXHeaders():
         XClaim = str(int(time.time()))
         XSig = getSHA256(f"9944822{XClaim}8{XClaim}113")
-        headers = {"X-Signature-Version": "web2",
-                   "X-Time": XClaim, "X-Signature": XSig}
-        return headers
+        return {
+            "X-Signature-Version": "web2",
+            "X-Time": XClaim,
+            "X-Signature": XSig,
+        }
 
     def login(s: requests.Session, email, password):
         s.headers.update(getXHeaders())
@@ -173,12 +175,11 @@ def authgetsession():
 
     def getInfo(response):
         received = json.loads(response)
-        ret = {
+        return {
             "Warning": "Please store this session token somewhere safe.",
             "Info": "1 Session token only vaild for 30 days. If you want to use it again, you need to request again.",
+            "session_token": received["session_token"],
         }
-        ret["session_token"] = received["session_token"]
-        return ret
 
     def main():
         s = requests.Session()
@@ -206,9 +207,11 @@ def authsummary():
     def getXHeaders():
         XClaim = str(int(time.time()))
         XSig = getSHA256(f"9944822{XClaim}8{XClaim}113")
-        headers = {"X-Signature-Version": "web2",
-                   "X-Time": XClaim, "X-Signature": XSig}
-        return headers
+        return {
+            "X-Signature-Version": "web2",
+            "X-Time": XClaim,
+            "X-Signature": XSig,
+        }
 
     def login(s: requests.Session, email, password):
         s.headers.update(getXHeaders())
@@ -218,23 +221,23 @@ def authsummary():
 
     def getInfo(response):
         received = json.loads(response)
-        ret = {}
-        ret["session_token"] = received["session_token"]
-        ret["name"] = received["user"]["name"]
-        ret["coins"] = received["user"]["coins"]
-        ret["premium"] = received["user"]["alt_premium_status"]
-        ret["email"] = received["user"]["email"]
-        ret["avatar"] = received["user"]["avatar_url"]
-        ret["id"] = received["user"]["id"]
-        ret["slug"] = received["user"]["slug"]
-        ret["video_view"] = received["user"]["video_views"]
-        return ret
+        return {
+            "session_token": received["session_token"],
+            "name": received["user"]["name"],
+            "coins": received["user"]["coins"],
+            "premium": received["user"]["alt_premium_status"],
+            "email": received["user"]["email"],
+            "avatar": received["user"]["avatar_url"],
+            "id": received["user"]["id"],
+            "slug": received["user"]["slug"],
+            "video_view": received["user"]["video_views"],
+        }
 
     def main():
         s = requests.Session()
         info = login(s, hanime_email, hanime_password)
         s.headers.update({"X-Session-Token": info["session_token"]})
-        sum = ({
+        return {
             "id": info["id"],
             "name": info["name"],
             "coin": info["coins"],
@@ -242,9 +245,8 @@ def authsummary():
             "email": info["email"],
             "avatar": info["avatar"],
             "slug": info["slug"],
-            "total_video_views": info["video_view"]
-        })
-        return sum
+            "total_video_views": info["video_view"],
+        }
     try:
         info = main()
         return jsonify(info), 200
@@ -265,8 +267,7 @@ def authcoins():
     def getXHeaders():
         XClaim = str(int(time.time()))
         XSig = getSHA256(f"9944822{XClaim}8{XClaim}113")
-        headers = {"X-Signature-Version": "app2","X-Claim": XClaim, "X-Signature": XSig}
-        return headers
+        return {"X-Signature-Version": "app2","X-Claim": XClaim, "X-Signature": XSig}
 
     def login(s: requests.Session, email, password):
         s.headers.update(getXHeaders())
@@ -278,12 +279,13 @@ def authcoins():
 
     def getInfo(response):
         received = json.loads(response)
-        ret = {}
-        ret["session_token"] = received["session_token"]
-        ret["uid"] = received["user"]["id"]
-        ret["name"] = received["user"]["name"]
-        ret["coins"] = received["user"]["coins"]
-        ret["last_clicked"] = received["user"]["last_rewarded_ad_clicked_at"]
+        ret = {
+            "session_token": received["session_token"],
+            "uid": received["user"]["id"],
+            "name": received["user"]["name"],
+            "coins": received["user"]["coins"],
+            "last_clicked": received["user"]["last_rewarded_ad_clicked_at"],
+        }
 
         available_keys = list(received["env"]["mobile_apps"].keys())
 
@@ -341,9 +343,11 @@ def authbody():
     def getXHeaders():
         XClaim = str(int(time.time()))
         XSig = getSHA256(f"9944822{XClaim}8{XClaim}113")
-        headers = {"X-Signature-Version": "web2",
-                   "X-Time": XClaim, "X-Signature": XSig}
-        return headers
+        return {
+            "X-Signature-Version": "web2",
+            "X-Time": XClaim,
+            "X-Signature": XSig,
+        }
 
     def login(s: requests.Session, email, password):
         s.headers.update(getXHeaders())
@@ -352,8 +356,7 @@ def authbody():
         return getInfo(response.text)
 
     def getInfo(response):
-        received = json.loads(response)
-        return received
+        return json.loads(response)
 
     def main():
         s = requests.Session()
@@ -382,9 +385,11 @@ def authcoinbody():
     def getXHeaders():
         XClaim = str(int(time.time()))
         XSig = getSHA256(f"9944822{XClaim}8{XClaim}113")
-        headers = {"X-Signature-Version": "app2",
-                   "X-Claim": XClaim, "X-Signature": XSig}
-        return headers
+        return {
+            "X-Signature-Version": "app2",
+            "X-Claim": XClaim,
+            "X-Signature": XSig,
+        }
 
     def login(s: requests.Session, email, password):
         s.headers.update(getXHeaders())
@@ -398,12 +403,13 @@ def authcoinbody():
 
     def getInfo(response):
         received = json.loads(response)
-        ret = {}
-        ret["session_token"] = received["session_token"]
-        ret["uid"] = received["user"]["id"]
-        ret["name"] = received["user"]["name"]
-        ret["coins"] = received["user"]["coins"]
-        ret["last_clicked"] = received["user"]["last_rewarded_ad_clicked_at"]
+        ret = {
+            "session_token": received["session_token"],
+            "uid": received["user"]["id"],
+            "name": received["user"]["name"],
+            "coins": received["user"]["coins"],
+            "last_clicked": received["user"]["last_rewarded_ad_clicked_at"],
+        }
 
         available_keys = list(received["env"]["mobile_apps"].keys())
 
@@ -450,7 +456,7 @@ def authcoinbody():
 @limiter.limit(req)
 def info():
     id = request.args.get('id')
-    result = requests.get(video_api_url + '/?id=' + id)
+    result = requests.get(f'{video_api_url}/?id={id}')
     if result.status_code == 404:
         return jsonify({"error": "No Hanime Video Id or Slug Provided", "status": "404"}), 404
     result = result.json()
@@ -463,30 +469,33 @@ def info():
     res_tags = result["hentai_video"]["hentai_tags"]
     res_dl = "https://hanime.tv/downloads/" + \
         base64.b64encode(result["hentai_video"]["slug"].encode()).decode()
-    return jsonify(
-        {
-            "slug": result["hentai_video"]["slug"],
-            "id": result["hentai_video"]["id"],
-            "title": result["hentai_video"]["name"],
-            "views": res_view,
-            "info": {
-                "brand": result["hentai_video"]["brand"],
-                "uploaded_date": res_crdt,
-                "released_date": res_redt,
-                "censored": result["hentai_video"]["is_censored"],
-            },
-            "description": result["hentai_video"]["description"],
-            "tags": [x["text"] for x in res_tags],
-            "poster": result["hentai_video"]["cover_url"],
-            "video": video_url + "/" + id,
-            "downloadURL": res_dl,
-        }
-    ), 200
+    return (
+        jsonify(
+            {
+                "slug": result["hentai_video"]["slug"],
+                "id": result["hentai_video"]["id"],
+                "title": result["hentai_video"]["name"],
+                "views": res_view,
+                "info": {
+                    "brand": result["hentai_video"]["brand"],
+                    "uploaded_date": res_crdt,
+                    "released_date": res_redt,
+                    "censored": result["hentai_video"]["is_censored"],
+                },
+                "description": result["hentai_video"]["description"],
+                "tags": [x["text"] for x in res_tags],
+                "poster": result["hentai_video"]["cover_url"],
+                "video": f"{video_url}/{id}",
+                "downloadURL": res_dl,
+            }
+        ),
+        200,
+    )
 
 @app.route('/getVideo', methods=["GET"])
 @limiter.limit(req)
 def getVideo():
-    url = video_api_url + "?id=" + request.args.get('id')
+    url = f"{video_api_url}?id=" + request.args.get('id')
     result = requests.get(url, headers={
         "X-Session-Token": request.headers.get('Token'),
     })
@@ -496,17 +505,18 @@ def getVideo():
     dl = "https://hanime.tv/downloads/" + \
         base64.b64encode(result["hentai_video"]["slug"].encode()).decode()
     ret = {
-        "url": video_url + "/" + request.args.get('id'),
+        "url": f"{video_url}/" + request.args.get('id'),
         "download_url": dl,
-        "streams": result["videos_manifest"]["servers"][0]["streams"]
+        "streams": result["videos_manifest"]["servers"][0]["streams"],
     }
+
     return jsonify(ret), 200
 
 @app.route('/getVideo/player', methods=["GET"])
 @limiter.limit(req)
 def vidplayerstrm():
     id = request.args.get('id')
-    url = video_api_url + "?id=" + id
+    url = f"{video_api_url}?id={id}"
     result = requests.get(url)
     if result.status_code == 404:
         return jsonify({"error": "No Hanime Video Id or Slug Provided", "status": "404"}), 404
@@ -530,14 +540,15 @@ def vidplayerstrm():
     dl = "https://hanime.tv/downloads/" + \
         base64.b64encode(result["hentai_video"]["slug"].encode()).decode()
     ret = {
-        "url": video_url + "/" + id,
+        "url": f"{video_url}/{id}",
         "downloadURL": dl,
         "info": "1080p is currently supported at /getVideo/premium",
         "player_url": f"https://player.nscdn.ml/player.html?title={title}&file=[{resol3}]{str3},[{resol2}]{str2},[{resol1}]{str1}&poster={thumb}&download={dl}&default_quality=720p",
         "iframe_api": f"<iframe src='https://player.nscdn.ml/player.html?title={title}&file=[{resol1}]{str1},[{resol2}]{str2},[{resol3}]{str3}&poster={thumb}&download={dl}&default_quality=720p' frameborder='0' allowfullscreen width='360' height='526'></iframe>",
         "main_url": "https://player.nscdn.ml",
-        "info": "The Player is not working somehow due to CORS error. Please use /getVideo instead or Use CORS Extension & Proxy."
+        "info": "The Player is not working somehow due to CORS error. Please use /getVideo instead or Use CORS Extension & Proxy.",
     }
+
     return jsonify(ret), 200
 
 @app.route('/getComment', methods=["GET"])
@@ -642,7 +653,7 @@ def gettrend():
         p = "0"
     headers = {"X-Signature-Version": "web2",
                "X-Signature": secrets.token_hex(32)}
-    res = requests.get(browse_trends+f"?time={time}&page={p}", headers=headers)
+    res = requests.get(f"{browse_trends}?time={time}&page={p}", headers=headers)
     results = res.json()
     ret = {
         "results": results["hentai_videos"],
@@ -680,7 +691,11 @@ def search():
     headers = {
         "Content-Type": "application/json; charset=utf-8"
     }
-    if search_tag == None and search_brand == None and search_blacklist == None:
+    if (
+        search_tag is None
+        and search_brand is None
+        and search_blacklist is None
+    ):
         search_tag = []
         search_brand = []
         search_blacklist = []
@@ -740,8 +755,10 @@ def Browse():
 @app.route("/browse/<type>/<tag>/<page>", methods=["GET"])
 @limiter.limit(req)
 def browsefilter(type, tag, page):
-    browse_url = browse + "/" + type + "/" + \
-        tag + f"?page={page}&order_by=created_at_unix&ordering=desc"
+    browse_url = (
+        f"{browse}/{type}/" + tag
+    ) + f"?page={page}&order_by=created_at_unix&ordering=desc"
+
     headers = {"X-Signature-Version": "web2",
                "X-Signature": secrets.token_hex(32)}
     result = requests.get(browse_url, headers=headers)
@@ -769,25 +786,29 @@ def user():
     result = result.json()
     if stt == 401:
         return jsonify({"errors": "Unauthorized. No User Session Token provided"}), 401
-    ret = {}
-    ret["user"] = result["user_channel"]
-    ret["achievements"] = result["user_achievements"]
-    ret["playlists"] = result["playlists"]
+    ret = {
+        "user": result["user_channel"],
+        "achievements": result["user_achievements"],
+        "playlists": result["playlists"],
+    }
+
     return jsonify(ret), 200
 
 @app.route('/user/<ch_id>', methods=['GET'])
 @limiter.limit(req)
 def oth_user(ch_id):
-    user_url = channels + "/" + ch_id
+    user_url = f"{channels}/{ch_id}"
     result = requests.get(user_url)
     stt = result.status_code
     result = result.json()
     if stt == 404:
         return jsonify({"errors": "User Not Found"}), 401
-    ret = {}
-    ret["user"] = result["user_channel"]
-    ret["achievements"] = result["user_channel_user_achievements"]
-    ret["playlists"] = result["user_channel_playlists"]
+    ret = {
+        "user": result["user_channel"],
+        "achievements": result["user_channel_user_achievements"],
+        "playlists": result["user_channel_playlists"],
+    }
+
     return jsonify(ret), 200
 
 # Community Upload
@@ -797,7 +818,7 @@ def oth_user(ch_id):
 @limiter.limit(req)
 def community_upload():
     page = request.args.get("p")
-    if page == None:
+    if page is None:
         page = 1
     community_upload_url = f"{community}?channel_name__in[]=media&channel_name__in[]=nsfw-general&channel_name__in[]=furry&channel_name__in[]=futa&channel_name__in[]=yaoi&channel_name__in[]=yuri&channel_name__in[]=traps&channel_name__in[]=irl-3d&query_method=nav-to-page&page={page}&loc=https://hanime.tv"
     result = requests.get(community_upload_url)
@@ -818,39 +839,14 @@ def community_upload_fltr():
     traps = request_data["traps"]
     irl_3d = request_data["irl_3d"]
 
-    if media == "true" or media == "":
-        media = "channel_name__in[]=media"
-    else:
-        media = ""
-    if nsfw == "true":
-        nsfw = "&channel_name__in[]=nsfw-general"
-    else:
-        nsfw = ""
-    if furry == "true":
-        furry = "&channel_name__in[]=furry"
-    else:
-        furry = ""
-    if futa == "true":
-        futa = "&channel_name__in[]=futa"
-    else:
-        futa = ""
-    if yaoi == "true":
-        yaoi = "&channel_name__in[]=yaoi"
-    else:
-        yaoi = ""
-    if yuri == "true":
-        yuri = "&channel_name__in[]=yuri"
-    else:
-        yuri = ""
-    if traps == "true":
-        traps = "&channel_name__in[]=traps"
-    else:
-        traps = ""
-    if irl_3d == "true":
-        irl_3d = "&channel_name__in[]=irl-3d"
-    else:
-        irl_3d = ""
-
+    media = "channel_name__in[]=media" if media in ["true", ""] else ""
+    nsfw = "&channel_name__in[]=nsfw-general" if nsfw == "true" else ""
+    furry = "&channel_name__in[]=furry" if furry == "true" else ""
+    futa = "&channel_name__in[]=futa" if futa == "true" else ""
+    yaoi = "&channel_name__in[]=yaoi" if yaoi == "true" else ""
+    yuri = "&channel_name__in[]=yuri" if yuri == "true" else ""
+    traps = "&channel_name__in[]=traps" if traps == "true" else ""
+    irl_3d = "&channel_name__in[]=irl-3d" if irl_3d == "true" else ""
     community_upload_url = f"{community}?{media}{nsfw}{furry}{futa}{yaoi}{yuri}{traps}{irl_3d}&query_method=nav-to-page&page={page}&loc=https://hanime.tv"
     result = requests.get(community_upload_url)
     result = result.json()
